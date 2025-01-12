@@ -1,3 +1,4 @@
+import os
 import shutil
 
 from ... import paths
@@ -31,12 +32,18 @@ def clean(force, deep, snakemake_args=(), cores=1, conda_frontend="conda"):
     if paths.user().temp.exists():
         shutil.rmtree(paths.user().temp)
     if force:
-        for file in paths.user().figures.rglob("*.*"):
-            if file.name != ".gitignore":
-                file.unlink()
-        for file in paths.user().data.rglob("*.*"):
-            if file.name != ".gitignore":
-                file.unlink()
+        for root, dirs, files in os.walk(paths.user().data, topdown=False):
+            for name in files:
+                if name != ".gitignore":
+                    os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        for root, dirs, files in os.walk(paths.user().figures, topdown=False):
+            for name in files:
+                if name != ".gitignore":
+                    os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
     if deep:
         if (paths.user().repo / ".snakemake").exists():
             shutil.rmtree(paths.user().repo / ".snakemake")
